@@ -3,9 +3,8 @@
 ##############################################################################
 
 sub GenDTG {
-    local ($^W=0);
-    my ($tym) = @_;
-    if ($tym eq "") {
+    ($tym) = @_;
+    if (!$tym) {
       $loc = localtime();
     } else {
       $loc = localtime($tym);
@@ -29,12 +28,14 @@ $SS = substr($loc,17,2);
 
 $DTG = $YY.$MM.$DD." ".$HH.$MN.$SS;
 $DTG2 = $YY.$MM.$DD."_".$HH.$MN.$SS;
-
+$DTGY2K = ""; 
+$DTGY2K = $YYYY.$MM.$DD.$HH.$MN.$SS;
 }
 ##############################################################################
 
 sub GenTemp {              # Generate a Unique File name
   GenDTG();                # based on update type, a counter, DTG & Process #
+  $TmpFilNam = "";
   $TmpIdx++;
   $TmpFilNam = $TmpIdx."_".$DTG2."_".$$;
 }
@@ -200,13 +201,19 @@ EOM
        ($name, $value) = split(/=/, $pair);
        # Un-Webify plus signs and %-encoding
        $value = "" if (!$value);
-       $value =~ tr/+/ /;
-       $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
-       $value =~ s/<!--(.|\n)*-->//g;
-       $value =~ s/</&lt;/g;
-       $value =~ s/>/&gt;/g;
+       $value =~ tr/+/ /;  #Plus to space
+       $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg; #decode hex
 
-       $FORM{$name} = $value;
+   # De-Taint bad symbols:
+       $value =~ s/<!--(.|\n)*-->//g; #delete HTML comments
+       $value =~ s/&/&amp;/g;    # de-ampersand <B>FIRST!!!</B>
+       $value =~ s/\"/&quot;/g;  # de-double quote
+       $value =~ s/\'/&#39;/g;   # de-single quote
+       $value =~ s/</&lt;/g;     # de-tag Left
+       $value =~ s/>/&gt;/g;     # de-tag Right 
+       $value =~ s/\|/&#124;/g;  # de-pipe
+       $value =~ s/\`/&#96;/g;   # de-backtick 
+       $FORM{$name} = $value;	 #Stuff into hash
     }
 }
 
@@ -362,18 +369,20 @@ sub	paws {
 	print "???\n";
 	$x=<STDIN>;
 }
-
 ##################################################################
-sub rot13 {
-    while ($_[0] =~ /(.)/g) {
-      $c = $1;
-      $c =~ tr/a-zA-Z/n-za-mN-ZA-M/;
-      $c =~ tr/0-9/5-90-4/;                 
-      $bable .= $c;
-    }
-    return $bable;
+sub Scrub {
+    my ($CleanMe) = @_;
+    $CleanMe =~ s/<!--(.|\n)*-->//g; #delete HTML comments
+    $CleanMe =~ s/&/&amp;/g;    # de-ampersand <B>FIRST!!!</B>
+    $CleanMe =~ s/\"/&quot;/g;  # de-double quote
+    $CleanMe =~ s/\'/&#39;/g;   # de-single quote
+    $CleanMe =~ s/</&lt;/g;     # de-tag Left
+    $CleanMe =~ s/>/&gt;/g;     # de-tag Right 
+    $CleanMe =~ s/\|/&#124;/g;  # de-pipe
+    $CleanMe =~ s/\`/&#96;/g;   # de-backtick 
+    return $CleanMe;
 }
-##################################################################
+
 
 1;
 
