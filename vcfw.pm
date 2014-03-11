@@ -1,7 +1,7 @@
 # VCFW.PM My Favorite Goobers
 
 ##############################################################################
-
+# I know this is deprecated by DTGhr, but it's every-freaking-where
 sub GenDTG {
     ($tym) = @_;
     if (!$tym) {
@@ -12,7 +12,6 @@ sub GenDTG {
 
 %MONTHS=('Jan','01','Feb','02','Mar','03','Apr','04','May','05','Jun','06',
          'Jul','07','Aug','08','Sep','09','Oct','10','Nov','11','Dec','12');
-
 
 $MONTH = substr($loc,4,3);
 $MM = $MONTHS{$MONTH};
@@ -28,14 +27,12 @@ $SS = substr($loc,17,2);
 
 $DTG = $YY.$MM.$DD." ".$HH.$MN.$SS;
 $DTG2 = $YY.$MM.$DD."_".$HH.$MN.$SS;
-$DTGY2K = ""; 
-$DTGY2K = $YYYY.$MM.$DD.$HH.$MN.$SS;
+
 }
 ##############################################################################
 
 sub GenTemp {              # Generate a Unique File name
   GenDTG();                # based on update type, a counter, DTG & Process #
-  $TmpFilNam = "";
   $TmpIdx++;
   $TmpFilNam = $TmpIdx."_".$DTG2."_".$$;
 }
@@ -201,19 +198,13 @@ EOM
        ($name, $value) = split(/=/, $pair);
        # Un-Webify plus signs and %-encoding
        $value = "" if (!$value);
-       $value =~ tr/+/ /;  #Plus to space
-       $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg; #decode hex
+       $value =~ tr/+/ /;
+       $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+       $value =~ s/<!--(.|\n)*-->//g;
+       $value =~ s/</&lt;/g;
+       $value =~ s/>/&gt;/g;
 
-   # De-Taint bad symbols:
-       $value =~ s/<!--(.|\n)*-->//g; #delete HTML comments
-       $value =~ s/&/&amp;/g;    # de-ampersand <B>FIRST!!!</B>
-       $value =~ s/\"/&quot;/g;  # de-double quote
-       $value =~ s/\'/&#39;/g;   # de-single quote
-       $value =~ s/</&lt;/g;     # de-tag Left
-       $value =~ s/>/&gt;/g;     # de-tag Right 
-       $value =~ s/\|/&#124;/g;  # de-pipe
-       $value =~ s/\`/&#96;/g;   # de-backtick 
-       $FORM{$name} = $value;	 #Stuff into hash
+       $FORM{$name} = $value;
     }
 }
 
@@ -369,20 +360,25 @@ sub	paws {
 	print "???\n";
 	$x=<STDIN>;
 }
+
 ##################################################################
-sub Scrub {
-    my ($CleanMe) = @_;
-    $CleanMe =~ s/<!--(.|\n)*-->//g; #delete HTML comments
-    $CleanMe =~ s/&/&amp;/g;    # de-ampersand <B>FIRST!!!</B>
-    $CleanMe =~ s/\"/&quot;/g;  # de-double quote
-    $CleanMe =~ s/\'/&#39;/g;   # de-single quote
-    $CleanMe =~ s/</&lt;/g;     # de-tag Left
-    $CleanMe =~ s/>/&gt;/g;     # de-tag Right 
-    $CleanMe =~ s/\|/&#124;/g;  # de-pipe
-    $CleanMe =~ s/\`/&#96;/g;   # de-backtick 
-    return $CleanMe;
+sub rot13 {
+    while ($_[0] =~ /(.)/g) {
+      $c = $1;
+      $c =~ tr/a-zA-Z/n-za-mN-ZA-M/;
+      $c =~ tr/0-9/5-90-4/;                 
+      $bable .= $c;
+    }
+    return $bable;
+}
+##################################################################
+sub DTGhr { #Hi Res Time: returns YYYYMMDD_HHMMSS.TTTTTT
+	use Time::HiRes qw(time);
+	use POSIX qw(strftime);
+	my $t = time;
+	return (strftime "%Y%m%d_%H%M%S", localtime($t)) . sprintf (".%06d", ($t-int($t))*(10**6));
 }
 
-
+##################################################################
 1;
 

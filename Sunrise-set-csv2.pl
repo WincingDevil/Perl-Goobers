@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use vcfw;
-use Date::Pcalc 'Add_Delta_Days';
+use Date::Calc 'Add_Delta_Days';
 GenDTG();
 (@Rise,@Set) ="";
 $Junk="";
@@ -29,17 +29,21 @@ for ($Day=1; $Day <= 31; $Day++) {
 	) = split(/,/,$LineIn);
 
 }
-
-for ($Jdate=1;$Jdate<=365;$Jdate++) {
-	$Jdate1 = substr(("00".$Jdate),-3,3);
-	$yyyy_doy = $ThisYear . $Jdate1;
-	($year, $doy) = $yyyy_doy =~ /(....)(...)/;
-	($YYYY, $MM, $DD) = Add_Delta_Days ($year, 1, 1, $doy - 1);
-#	print OUT "$Jdate1,";
-	TimeCalc($Rise[$MM][$DD],$Set[$MM][$DD],$MM,$DD);
-	$MM = substr(("0".$MM),-2,2);
-	$DD = substr(("0".$DD),-2,2);
-	print OUT "$MM/$DD/$ThisYear,$H1:$M1,$H2:$M2,$Hd:$Md\n";
+$Jdate =0
+for ($CurrMon=1;$CurrMon<=12;$CurrMon++) {
+     $days = Days_in_Month($ThisYear,$CurrMon);
+    for ($DoM=1;$DoM<=$days;$DoM++) {
+		$Jdate++;
+		$Jdate1 = substr(("00".$Jdate),-3,3);
+		$yyyy_doy = $ThisYear . $Jdate1;
+#		($year, $doy) = $yyyy_doy =~ /(....)(...)/;
+		($YYYY, $MM, $DD) = Add_Delta_Days ($year, 1, 1, $doy - 1);
+	#	print OUT "$Jdate1,";
+		TimeCalc($Rise[$MM][$DD],$Set[$MM][$DD],$MM,$DD);
+		$MM = substr(("0".$MM),-2,2);
+		$DD = substr(("0".$DD),-2,2);
+		print OUT "$MM/$DD/$ThisYear,$H1:$M1,$H2:$M2,$Hd:$Md\n";
+	}
 }
 close OUT;
 system "q $F2";
