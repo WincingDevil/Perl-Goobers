@@ -178,7 +178,7 @@ sub Garner {
       }
     }
 
-$VCFWDBG=0;
+#$VCFWDBG=0;
 if ($VCFWDBG eq 1) {
 print<<EOM;
 Content-type: text/html
